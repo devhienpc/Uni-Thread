@@ -58,7 +58,11 @@ export const vi = {
     banned: "Bị cấm",
     quickLogin: "Đăng nhập nhanh (Dev)",
     userRole: "Người dùng",
-    adminRole: "Quản trị viên"
+    adminRole: "Quản trị viên",
+    confirmDeleteTitle: "Xác nhận xóa",
+    confirmDeleteMessage: "Bạn có chắc chắn muốn xóa bài viết này không? Hành động này không thể hoàn tác.",
+    deleteSuccess: "Đã xóa bài viết thành công!",
+    deleteError: "Có lỗi xảy ra khi xóa bài viết. Vui lòng thử lại."
   },
   auth: {
     welcome: "Chào mừng trở lại! Vui lòng nhập thông tin để tiếp tục kết nối.",

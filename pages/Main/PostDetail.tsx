@@ -1,17 +1,21 @@
 
-import React from 'react';
+import React, { useState, useEffect } from 'react';
 import { useParams, Link } from 'react-router-dom';
 import Sidebar from '../../components/Sidebar';
 import { vi } from '../../lang/vi';
-import { Post, UserRole, Comment } from '../../types';
+import { Post, UserRole, Comment, Notification } from '../../types';
 import { useAuthStore } from '../../store/useAuthStore';
+import { useUIStore } from '../../store/useUIStore';
+import { useNotificationStore } from '../../store/useNotificationStore';
 
 const PostDetail: React.FC = () => {
   const { id } = useParams();
   const { user } = useAuthStore();
+  const { addToast } = useUIStore();
+  const { addNotification } = useNotificationStore();
   const t = vi.common;
 
-  const post: Post = {
+  const [post, setPost] = useState<Post>({
     id: id || 'post-detail-1',
     userId: 'user-admin',
     authorName: 'Nguyen Van A',
@@ -24,9 +28,9 @@ const PostDetail: React.FC = () => {
     commentCount: 42,
     shareCount: 12,
     isLiked: false
-  };
+  });
 
-  const comments: Comment[] = [
+  const [comments, setComments] = useState<Comment[]>([
     {
       id: 'c1',
       postId: post.id,
@@ -60,7 +64,54 @@ const PostDetail: React.FC = () => {
         }
       ]
     }
-  ];
+  ]);
+
+  // Simulate real-time incoming comment
+  useEffect(() => {
+    const timer = setTimeout(() => {
+      const incomingComment: Comment = {
+        id: `c-realtime-${Date.now()}`,
+        postId: post.id,
+        userId: 'user-realtime',
+        authorName: 'Alex Johnson',
+        authorAvatar: 'https://picsum.photos/seed/alex/80',
+        content: 'Wow, I just tried this out and it works perfectly! Thanks for sharing this detailed post.',
+        createdAt: 'Vừa xong',
+        likeCount: 0
+      };
+
+      // 1. Add comment to UI
+      setComments(prev => [incomingComment, ...prev]);
+      
+      // 2. Update post comment count
+      setPost(prev => ({ ...prev, commentCount: prev.commentCount + 1 }));
+
+      // 3. Trigger Global Notification
+      const notification: Notification = {
+        id: `notif-${Date.now()}`,
+        type: 'comment',
+        message: 'đã bình luận về bài viết của bạn.',
+        fromUser: {
+          name: 'Alex Johnson',
+          avatar: 'https://picsum.photos/seed/alex/80'
+        },
+        postId: post.id,
+        isRead: false,
+        createdAt: new Date().toISOString()
+      };
+      
+      addNotification(notification);
+
+      // 4. Show Toast
+      addToast({ 
+        message: `${notification.fromUser.name} ${notification.message}`, 
+        type: 'info' 
+      });
+
+    }, 5000); // Receive a "real-time" comment after 5 seconds
+
+    return () => clearTimeout(timer);
+  }, [id, addNotification, addToast, post.id]);
 
   return (
     <div className="bg-background-light dark:bg-background-dark text-slate-900 dark:text-white antialiased min-h-screen flex">
@@ -145,10 +196,10 @@ const PostDetail: React.FC = () => {
 
               <div className="px-5 pb-5 flex flex-col gap-6">
                 {comments.map(comment => (
-                  <div key={comment.id} className="flex gap-3">
+                  <div key={comment.id} className="flex gap-3 animate-in slide-in-from-top-2 duration-300">
                     <img src={comment.authorAvatar} className="size-8 rounded-full flex-shrink-0 mt-1" alt="Avatar" />
                     <div className="flex flex-col flex-1 gap-1">
-                      <div className="bg-white dark:bg-surface-dark border border-slate-200 dark:border-border-dark rounded-2xl rounded-tl-none px-4 py-3">
+                      <div className="bg-white dark:bg-surface-dark border border-slate-200 dark:border-border-dark rounded-2xl rounded-tl-none px-4 py-3 shadow-sm">
                         <div className="flex justify-between items-center mb-1">
                           <h4 className="text-slate-900 dark:text-white text-sm font-bold">{comment.authorName}</h4>
                           <span className="text-xs text-text-secondary">{comment.createdAt}</span>

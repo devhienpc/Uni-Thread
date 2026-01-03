@@ -14,6 +14,7 @@ import PostDetail from './pages/Main/PostDetail';
 import Dashboard from './pages/Admin/Dashboard';
 import UserManagement from './pages/Admin/UserManagement';
 import EditProfileModal from './components/EditProfileModal';
+import DeletePostModal from './components/DeletePostModal';
 import DevQuickLogin from './components/DevQuickLogin';
 
 const App: React.FC = () => {
@@ -49,6 +50,7 @@ const App: React.FC = () => {
 
         {/* Modal Provider */}
         {activeModal === 'editProfileModal' && <EditProfileModal />}
+        {activeModal === 'deletePostConfirmation' && <DeletePostModal />}
 
         {/* Toast Notification Container */}
         <div className="fixed top-4 right-4 z-[9999] flex flex-col gap-2 pointer-events-none">

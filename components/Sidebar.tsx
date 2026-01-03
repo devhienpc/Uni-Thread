@@ -3,17 +3,19 @@ import React from 'react';
 import { Link, useLocation } from 'react-router-dom';
 import { vi } from '../lang/vi';
 import { useAuthStore } from '../store/useAuthStore';
+import { useNotificationStore } from '../store/useNotificationStore';
 
 const Sidebar: React.FC = () => {
   const location = useLocation();
   const { user, clearSession, isAdmin } = useAuthStore();
+  const { unreadCount } = useNotificationStore();
   const t = vi.common;
 
   const menuItems = [
     { path: '/', icon: 'home', label: t.home },
     { path: '/search', icon: 'search', label: t.search },
     { path: `/profile/${user?.username}`, icon: 'account_circle', label: t.profile },
-    { path: '/notifications', icon: 'notifications', label: t.notifications, badge: 3 },
+    { path: '/notifications', icon: 'notifications', label: t.notifications, badge: unreadCount },
   ];
 
   if (isAdmin) {
@@ -52,7 +54,7 @@ const Sidebar: React.FC = () => {
                     {item.icon}
                   </span>
                   <span className="text-sm font-medium">{item.label}</span>
-                  {item.badge && (
+                  {item.badge > 0 && (
                     <span className="ml-auto bg-red-500 text-white text-[10px] font-bold px-1.5 py-0.5 rounded-full">
                       {item.badge}
                     </span>

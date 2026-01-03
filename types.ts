@@ -33,7 +33,7 @@ export interface Post {
   shareCount: number;
   location?: string;
   isLiked?: boolean;
-  isOptimistic?: boolean; // New: For optimistic updates
+  isOptimistic?: boolean;
 }
 
 export interface Comment {
@@ -47,4 +47,17 @@ export interface Comment {
   likeCount: number;
   replies?: Comment[];
   isAuthor?: boolean;
+}
+
+export interface Notification {
+  id: string;
+  type: 'comment' | 'like' | 'mention';
+  message: string;
+  fromUser: {
+    name: string;
+    avatar: string;
+  };
+  postId: string;
+  isRead: boolean;
+  createdAt: string;
 }
