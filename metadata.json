@@ -1,0 +1,8 @@
+{
+  "name": "SocialApp - Mạng xã hội hiện đại",
+  "description": "Một ứng dụng mạng xã hội hoàn chỉnh với bảng tin, hồ sơ cá nhân, tìm kiếm và quản trị viên, được xây dựng với React, Tailwind CSS và kiến trúc hiện đại.",
+  "requestFramePermissions": [
+    "camera",
+    "microphone"
+  ]
+}
