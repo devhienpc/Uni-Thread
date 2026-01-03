@@ -4,9 +4,9 @@ import { useForm } from 'react-hook-form';
 import { useAuthStore } from '../store/useAuthStore';
 import { useFeedStore } from '../store/useFeedStore';
 import { useUIStore } from '../store/useUIStore';
-import { Post, UserRole } from '../types';
+import { Post } from '../types';
 import { vi } from '../lang/vi';
-import { savePostToStorage } from '../utils/storage';
+import { postService } from '../services/post.service';
 
 interface PostFormData {
   content: string;
@@ -28,7 +28,6 @@ const CreatePostForm: React.FC = () => {
 
     const tempId = `temp-${Date.now()}`;
     
-    // 1. Create Optimistic Post
     const optimisticPost: Post = {
       id: tempId,
       userId: user.id,
@@ -41,39 +40,23 @@ const CreatePostForm: React.FC = () => {
       commentCount: 0,
       shareCount: 0,
       isLiked: false,
-      isOptimistic: true // UI flag for pending state
+      isOptimistic: true
     };
 
-    // 2. Optimistic Update
     addPost(optimisticPost);
     reset();
 
     try {
-      // 3. Simulated API Call
-      await new Promise((resolve, reject) => {
-        setTimeout(() => {
-          // 5% chance of failure for testing rollback
-          if (Math.random() < 0.05) reject(new Error('Network failure'));
-          else resolve(true);
-        }, 800);
-      });
-
-      // 4. On Success: Replace with real data
-      const finalPost: Post = {
+      const finalPost = await postService.createPost({
         ...optimisticPost,
         id: `post-${Date.now()}`,
-        createdAt: 'Vừa xong',
         isOptimistic: false
-      };
-
-      // Persist to mock DB
-      savePostToStorage(finalPost);
+      });
       
       updatePost(tempId, finalPost);
     } catch (err) {
-      // 5. On Failure: Rollback
       removePost(tempId);
-      addToast({ message: 'Không thể đăng bài. Vui lòng thử lại.', type: 'error' });
+      addToast({ message: 'Lỗi từ dịch vụ Content. Vui lòng thử lại.', type: 'error' });
     }
   };
 
@@ -81,11 +64,7 @@ const CreatePostForm: React.FC = () => {
     <div className="bg-white dark:bg-surface-dark rounded-xl shadow-sm p-4 border border-gray-100 dark:border-border-dark">
       <form onSubmit={handleSubmit(onSubmit)} className="flex gap-4">
         <div className="shrink-0">
-          <img 
-            src={user?.avatarUrl || "https://picsum.photos/seed/user/100"} 
-            className="size-12 rounded-full border border-border-dark object-cover"
-            alt="Avatar"
-          />
+          <img src={user?.avatarUrl} className="size-12 rounded-full border border-border-dark object-cover" alt="Avatar" />
         </div>
         <div className="flex-1 flex flex-col gap-3">
           <textarea 
@@ -95,19 +74,9 @@ const CreatePostForm: React.FC = () => {
           ></textarea>
           <div className="flex items-center justify-between">
             <div className="flex gap-2">
-              <button type="button" className="p-2 text-primary hover:bg-primary/10 rounded-full transition-colors" title="Ảnh/Video">
-                <span className="material-symbols-outlined block">image</span>
-              </button>
-              <button type="button" className="p-2 text-green-500 hover:bg-green-500/10 rounded-full transition-colors hidden sm:block" title="Cảm xúc">
-                <span className="material-symbols-outlined block">sentiment_satisfied</span>
-              </button>
+              <button type="button" className="p-2 text-primary hover:bg-primary/10 rounded-full transition-colors"><span className="material-symbols-outlined block">image</span></button>
             </div>
-            <button 
-              type="submit"
-              className="bg-primary hover:bg-blue-600 text-white px-6 py-2 rounded-lg text-sm font-medium transition-colors shadow-lg shadow-primary/20"
-            >
-              {t.post}
-            </button>
+            <button type="submit" className="bg-primary hover:bg-blue-600 text-white px-6 py-2 rounded-lg text-sm font-medium transition-colors shadow-lg shadow-primary/20">{t.post}</button>
           </div>
         </div>
       </form>

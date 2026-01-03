@@ -2,7 +2,7 @@
 import React, { useEffect, useState } from 'react';
 import { useNavigate, useSearchParams } from 'react-router-dom';
 import { useAuthStore } from '../../store/useAuthStore';
-import { UserRole, User } from '../../types';
+import { authService } from '../../services/auth.service';
 
 const Callback: React.FC = () => {
   const [searchParams] = useSearchParams();
@@ -15,42 +15,16 @@ const Callback: React.FC = () => {
       const provider = searchParams.get('provider');
 
       if (!provider || !['google', 'github'].includes(provider)) {
-        setError("Authentication failed. Invalid provider.");
+        setError("Lỗi xác thực: Provider không hợp lệ.");
         return;
       }
 
       try {
-        // Simulate network latency
-        await new Promise((resolve) => setTimeout(resolve, 1000));
-
-        // Mock OAuth exchange
-        const email = `${provider}.user@example.com`;
-        const usersJson = localStorage.getItem('app_users');
-        const users: User[] = usersJson ? JSON.parse(usersJson) : [];
-
-        let user = users.find((u) => u.email === email);
-
-        if (!user) {
-          user = {
-            id: `oauth-${Date.now()}`,
-            username: `${provider}_user_${Math.floor(Math.random() * 1000)}`,
-            displayName: `${provider.charAt(0).toUpperCase() + provider.slice(1)} User`,
-            email: email,
-            avatarUrl: `https://picsum.photos/seed/${provider}/200`,
-            role: UserRole.USER,
-            joinedDate: new Date().toLocaleDateString('vi-VN', { month: 'long', year: 'numeric' }),
-            followingCount: 0,
-            followerCount: 0,
-          };
-          users.push(user);
-          localStorage.setItem('app_users', JSON.stringify(users));
-        }
-
-        const mockToken = `mock-oauth-jwt-token-${provider}-${Date.now()}`;
-        setSession(user, mockToken);
+        const { user, token } = await authService.oauthCallback(provider);
+        setSession(user, token);
         navigate('/');
       } catch (err) {
-        setError("Authentication failed. Please try again.");
+        setError("Lỗi từ Identity Service. Vui lòng thử lại.");
       }
     };
 
@@ -62,12 +36,7 @@ const Callback: React.FC = () => {
       <div className="min-h-screen bg-background-dark flex flex-col items-center justify-center p-4 text-center">
         <span className="material-symbols-outlined text-red-500 text-6xl mb-4">error</span>
         <h1 className="text-white text-xl font-bold mb-2">{error}</h1>
-        <button 
-          onClick={() => navigate('/auth/login')}
-          className="text-primary hover:underline font-medium"
-        >
-          Back to Login
-        </button>
+        <button onClick={() => navigate('/auth/login')} className="text-primary hover:underline font-medium">Quay lại đăng nhập</button>
       </div>
     );
   }
@@ -76,7 +45,7 @@ const Callback: React.FC = () => {
     <div className="min-h-screen bg-background-dark flex flex-col items-center justify-center">
       <div className="flex flex-col items-center gap-4">
         <div className="animate-spin rounded-full h-12 w-12 border-t-2 border-b-2 border-primary"></div>
-        <p className="text-white text-lg font-medium animate-pulse">Authenticating...</p>
+        <p className="text-white text-lg font-medium animate-pulse">Đang liên kết với Identity Service...</p>
       </div>
     </div>
   );
